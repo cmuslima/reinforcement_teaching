@@ -10,7 +10,7 @@ def teaching_training(seed, args, file = None):
   
     eps = args.teacher_eps_start   
     print(f'teacher eps {eps}')  
-    
+    all_student_scores = []
     all_teacher_actions = []
     teacher_return_list = []
     teacher_agent_functions = initialize_teacher_functions(args)
@@ -59,13 +59,16 @@ def teaching_training(seed, args, file = None):
             
     
             if done:
-                teacher_return_list.append(teacher_return)
-                all_teacher_actions.append(teacher_action_list)
-                print(f'teacher return {teacher_return}')
-                print(f'teacher_action_list {teacher_action_list}')
                 if args.training:
+                    teacher_return_list.append(teacher_return)
+                    all_teacher_actions.append(teacher_action_list)
+                    print(f'teacher return {teacher_return}')
+                    print(f'teacher_action_list {teacher_action_list}')
+                    all_student_scores.append(student_scores)
                     break
                 else:
+                    all_teacher_actions = teacher_action_list
+                    all_student_scores = student_scores
                     continue
             #print('finished a student episode \n')
                 
@@ -73,7 +76,7 @@ def teaching_training(seed, args, file = None):
 
         teacher_agent_functions.save_teacher_data(args, teacher_agent, teacher_return_list, teacher_return, seed)
 
-    return teacher_return_list, all_teacher_actions, student_scores
+    return teacher_return_list, all_teacher_actions, all_student_scores
 
 
  

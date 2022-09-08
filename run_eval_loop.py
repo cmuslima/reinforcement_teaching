@@ -5,17 +5,17 @@ def run_evaluation_loop(args):
     
     teacher_actions = []
     student_scores = []
-    save_single_run = True 
+    save_single_run = False 
     
-    print('START', args.num_runs_start)
-    print('END',args.num_runs_end)
     curr_data = []
     
     
     if save_single_run:
         end = args.num_runs_start+1
     else:
-        end = args.num_runs
+        end = args.num_runs_end
+    print('START', args.num_runs_start)
+    print('END',end)
     for seed in range(args.num_runs_start, end):
 
         print(f'run {seed} with student lr = {args.student_lr} with batch size = {args.teacher_batchsize} and learning rate = {args.teacher_lr} buffer = {args.teacher_buffersize}, reward {args.reward_function}')
@@ -42,6 +42,7 @@ def run_evaluation_loop(args):
     for idx, data in enumerate(collected_data):
 
         dir = f'{args.rootdir}/evaluation-data'
+        utils.make_dir(args, dir)
         index = str(seed)
 
         file_details = [data_names[idx], index]

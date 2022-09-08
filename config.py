@@ -15,7 +15,7 @@ if __name__ == '__main__':
     parser.add_argument('--rootdir', type=str) 
     parser.add_argument('--exp_type', type=str, default = 'curriculum') #this should always remain the same
     parser.add_argument('--setting', type=str, default = 'RL') #this should always remain the same
-    parser.add_argument('--env', type=str, default= 'four_rooms') #**this changes depending on the student task of interest
+    parser.add_argument('--env', type=str, default= 'maze') #**this changes depending on the student task of interest
     parser.add_argument('--max_time_step', type=int) 
     parser.add_argument('--SR', type=str)
     parser.add_argument('--reward_function', type=str)
@@ -90,7 +90,7 @@ if __name__ == '__main__':
     parser.add_argument('--MP', type=int, default = 0)#bool value
 
 
-    parser.add_argument('--training', type=int, default = 0) #bool value
+    parser.add_argument('--training', type=int, default = 1) #bool value
     parser.add_argument('--evaluation', type=int, default = 0)#bool value
     parser.add_argument('--plotting', type=int, default = 0)#bool value
     parser.add_argument('--average', type=int, default = 0)#bool value
@@ -277,11 +277,11 @@ if __name__ == '__main__':
     
 
     if args.hyper_param_sweep:
-        learning_rates = [.001,.005]
+        learning_rates = [.001]
         buffer_sizes = [100]
-        batch_sizes = [128,256] 
-        teacher_state_rep = 'L2T' #choices are buffer_policy (our method), buffer_q_table (our method), L2T, params
-        teacher_rf_list = ['L2T'] # simple_LP (our method), LP, target_task_score, 0_target_task_score, cost, L2T'
+        batch_sizes = [128] 
+        teacher_state_rep = 'buffer_policy' #choices are buffer_policy (our method), buffer_q_table (our method), L2T, params
+        teacher_rf_list = ['simple_LP'] # simple_LP (our method), LP, target_task_score, 0_target_task_score, cost, L2T'
         
         #L2T state + L2T reward = Fan et al (2018) method
         #params state + cost reward = Narvekear (2017) method
@@ -312,16 +312,14 @@ if __name__ == '__main__':
                         if args.evaluation:
                             run_evaluation_loop(args)
     else:
-        if args.evaluation:
-            args.teacher_episodes = 1
-            args.teacher_eps_start = 0
         args.rootdir = utils.get_rootdir(args, args.SR)
         utils.make_dir(args, args.rootdir)
 
-        print('args.evaluation', args.evaluation)
         if args.training:
             run_train_loop(args)
         if args.evaluation:
+            args.teacher_episodes = 1
+            args.teacher_eps_start = 0
             run_evaluation_loop(args)
 
                         
