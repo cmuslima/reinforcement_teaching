@@ -8,7 +8,8 @@ from teacher_env import teacher_environment
 def teaching_training(seed, args, file = None):
 
   
-    eps = args.teacher_eps_start     
+    eps = args.teacher_eps_start   
+    print(f'teacher eps {eps}')  
     
     all_teacher_actions = []
     teacher_return_list = []
@@ -52,6 +53,7 @@ def teaching_training(seed, args, file = None):
             
             traj = traj_prime
             eps = teacher_agent_functions.get_eps(args, eps)
+            print('changing eps', eps)
 
 
             

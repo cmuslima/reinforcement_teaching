@@ -1,0 +1,6 @@
+import numpy
+
+class exp3_bandit():
+ def __init__(self, args):
+        self.LP_dict = dict()
+        self.student_returns_d

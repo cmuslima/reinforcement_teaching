@@ -23,10 +23,10 @@ if __name__ == '__main__':
     #parser.add_argument('--teacher_evaluation_seed', type=int, default= 30)
     #parser.add_argument('--student_evaluation_seed', type=int, default= 0)
 
-    parser.add_argument('--student_transfer', type=bool, default= False)
-    parser.add_argument('--student_lr_transfer', type=bool, default= False)
-    parser.add_argument('--student_NN_transfer', type=bool, default= False)
-    parser.add_argument('--random_student_seed', type=bool, default= True)
+    parser.add_argument('--student_transfer', type=bool, default= 0)
+    parser.add_argument('--student_lr_transfer', type=bool, default= 0)
+    parser.add_argument('--student_NN_transfer', type=bool, default= 0)
+    parser.add_argument('--random_student_seed', type=bool, default= 1)
     parser.add_argument('--student_discount', type=float, default= .99)
     parser.add_argument('--student_eps', type=float, default= .01)
 
@@ -51,8 +51,8 @@ if __name__ == '__main__':
     parser.add_argument('--three_layer_network', type=bool) 
 
 
-    parser.add_argument('--one_hot_action_vector', type=bool, default = True)
-    parser.add_argument('--easy_initialization', type=bool, default = True)
+    parser.add_argument('--one_hot_action_vector', type=bool, default = 1)
+    parser.add_argument('--easy_initialization', type=bool, default = 1)
     parser.add_argument('--reward_log', type=bool) #not used
     parser.add_argument('--normalize', type=bool) #not used
 
@@ -61,42 +61,42 @@ if __name__ == '__main__':
     parser.add_argument('--num_training_episodes', type=int)
     parser.add_argument('--num_evaluation_episodes', type=int)
     parser.add_argument('--student_type', type=str)
-    parser.add_argument('--two_buffer', type=bool, default = False) #not used
-    parser.add_argument('--multi_controller', type=bool, default = False)#not used
-    parser.add_argument('--multi_controller_v2', type=bool, default = False)#not used
-    parser.add_argument('--clear_buffer', type=bool, default = False)#not used
+    parser.add_argument('--two_buffer', type=bool, default = 0) #not used
+    parser.add_argument('--multi_controller', type=bool, default = 0)#not used
+    parser.add_argument('--multi_controller_v2', type=bool, default = 0)#not used
+    parser.add_argument('--clear_buffer', type=bool, default = 0)#not used
 
-    parser.add_argument('--multi_students', type=bool, default = False)
-    parser.add_argument('--tabular', type=bool, default = False)
-    parser.add_argument('--goal_conditioned', type=bool, default = False)#not used
+    parser.add_argument('--multi_students', type=bool, default = 0)
+    parser.add_argument('--tabular', type=bool, default = 0)
+    parser.add_argument('--goal_conditioned', type=bool, default = 0)#not used
 
     parser.add_argument('--stagnation_threshold', type=int, default= 3)#not used
     parser.add_argument('--LP_threshold', type=float, default= .05)#not used
     #parser.add_argument('--percent_change', type=bool, default = False)
 
     #types of teachers during evaluation:
-    parser.add_argument('--random_curriculum', type=bool, default = False)
-    parser.add_argument('--target_task_only', type=bool, default = False)
-    parser.add_argument('--trained_teacher', type=bool, default = False)
-    parser.add_argument('--handcrafted', type=bool, default = False)
+    parser.add_argument('--random_curriculum', type=bool, default = 0)
+    parser.add_argument('--target_task_only', type=bool, default = 0)
+    parser.add_argument('--trained_teacher', type=bool, default = 0)
+    parser.add_argument('--handcrafted', type=bool, default = 0)
 
 
-    parser.add_argument('--debug', type=bool, default= False)
+    parser.add_argument('--debug', type=bool, default= 0)
     parser.add_argument('--num_runs_start', type=int, default= 0)
     parser.add_argument('--num_runs_end', type=int, default= 10)
     parser.add_argument('--num_runs', type=int, default= 10)
 
     parser.add_argument('--num_student_processes', type=int, default= 1) #this is only used for fetch reach +open ai baselines
-    parser.add_argument('--MP', type=bool, default = False)
+    parser.add_argument('--MP', type=bool, default = 0)
 
 
-    parser.add_argument('--training', type=bool, default = True)
-    parser.add_argument('--evaluation', type=bool, default = False)
-    parser.add_argument('--plotting', type=bool, default = False)
-    parser.add_argument('--average', type=bool, default = False)
+    parser.add_argument('--training', type=bool, default = 0)
+    parser.add_argument('--evaluation', type=bool, default = 0)
+    parser.add_argument('--plotting', type=bool, default = 0)
+    parser.add_argument('--average', type=bool, default = 0)
     parser.add_argument('--saving_method', type=str, default = 'exceeds_average')
     parser.add_argument('--folder_name', type=str, default = 'None')
-    parser.add_argument('--hyper_param_sweep', type=bool, default = False)
+    parser.add_argument('--hyper_param_sweep', type=int, default = 0)
 
 
 
@@ -170,15 +170,18 @@ if __name__ == '__main__':
 
 
     #plotting arguments
-    parser.add_argument('--single_baseline_comp', type=bool, default=True)
-    parser.add_argument('--comparing_scores', type=bool, default=True)
-    parser.add_argument('--plot_best_data', type=bool, default=True)
-    parser.add_argument('--stagnation', type=bool, default=True)
-    parser.add_argument('--AUC', type=bool, default = True) #AUC is area under curve, used for plotting
+    parser.add_argument('--single_baseline_comp', type=bool, default=1)
+    parser.add_argument('--comparing_scores', type=bool, default=1)
+    parser.add_argument('--plot_best_data', type=bool, default=1)
+    parser.add_argument('--stagnation', type=bool, default=1)
+    parser.add_argument('--AUC', type=bool, default = 1) #AUC is area under curve, used for plotting
 
 
 
     args = parser.parse_args()
+    print('args.evaluation right after', args.evaluation)
+
+
     if args.env == 'maze': #once I update the env code such that I only have one code for all environments, this will be more useful
         args.rows = 11
         args.columns = 16
@@ -198,7 +201,7 @@ if __name__ == '__main__':
         args.three_layer_network = False
         args.stagnation = True #not used
         args.num_runs = 30
-      
+        args.student_type = 'q_learning'
     elif args.env == 'cliff_world': #once I update the env code such that I only have one code for all environments, this will be more useful
         args.rows = 4
         args.columns = 12
@@ -273,7 +276,7 @@ if __name__ == '__main__':
         args.three_layer_network = False
         args.num_env = 2
 
-
+    
 
     if args.hyper_param_sweep:
         learning_rates = [.001,.005]
@@ -316,6 +319,8 @@ if __name__ == '__main__':
             args.teacher_eps_start = 0
         args.rootdir = utils.get_rootdir(args, args.SR)
         utils.make_dir(args, args.rootdir)
+
+        print('args.evaluation', args.evaluation)
         if args.training:
             run_train_loop(args)
         if args.evaluation:
@@ -362,3 +367,5 @@ if __name__ == '__main__':
     #     #average.average_data(args)
     #     # print(area_under_curve)
     #     #plotting_graphs_updated.t_testing(args)
+
+
