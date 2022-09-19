@@ -9,7 +9,7 @@ from init_student import initalize_single_student
 
 
 def get_student_env_name(task_index, teacher_action_list, args):
-    print(teacher_action_list, task_index)
+    #print(teacher_action_list, task_index)
     if args.exp_type == 'curriculum':
         if args.env == 'maze' or args.env == 'cliff_world':
             task_name = teacher_action_list[task_index]
@@ -129,7 +129,7 @@ class teacher_environment():
         student_id = None
 
         task_name, task_index = teacher_agent_functions.get_teacher_first_action(args, self.teacher_action_size,self.teacher_action_list, self.target_task_index, self.target_task)
-        print('just finished getting my first teacher action')
+        #print('just finished getting my first teacher action')
 
         self.first_occurence_task_check(task_index, task_name, args)
         assert self.student_model == None and self.student_params == 0
@@ -140,7 +140,7 @@ class teacher_environment():
    #maybe done yet
     def first_occurence_task_check(self, task_index, task_name, args):
         if task_index not in list(self.student_returns_dict.keys()):
-            print(f'task index = {task_index} not in returns dict')
+            #print(f'task index = {task_index} not in returns dict')
             average_score, _ = self.train_evaluate_protocol.evaluate(self.student_agent, task_name, args, self.student_model, self.student_env_dict, self.student_config_params, self.student_dims) 
             update_entry = {task_index: average_score}
             self.student_returns_dict.update(update_entry)
@@ -178,7 +178,7 @@ class teacher_environment():
         #self.student_model, self.student_params this is only for ddpg student
 
         source_task_training_score, obss, q_values, actions, self.student_model, self.student_params, self.student_config_params, self.student_dims = self.train_evaluate_protocol.train(self.student_agent, self.student_type, task_name, args, self.student_model, self.student_env_dict, self.student_config_params, self.student_dims)
-        print('finished training')
+        #print('finished training')
         if args.teacher_agent == 'DQN':
             if 'buffer' in args.SR:
                 self.add_obs_to_buffer(obss, q_values, actions, args)
@@ -189,7 +189,7 @@ class teacher_environment():
         else:
             source_task_score, target_task_score, self.student_params= self.train_evaluate_protocol.source_target_evaluation(student_id, self.student_agent, task_name, self.target_task, args, self.student_model, self.student_env_dict, self.student_config_params, self.student_dims)
         
-        print('finishing evaluting on target and source task ')
+        #print('finishing evaluting on target and source task ')
         return source_task_score, target_task_score, source_task_training_score
 
 
@@ -201,7 +201,7 @@ class teacher_environment():
         self.teacher_action_list = []
         if args.env == 'maze':
             self.teacher_action_list = [np.array([10,4]),np.array([1,1]), np.array([5,1]), np.array([9,1]),np.array([7,5]), np.array([3,6]), np.array([5,10]), np.array([2,12]), np.array([10,8]),  np.array([10,14]),  np.array([7,13])]
-            print('teacher_action_list', self.teacher_action_list)
+            #print('teacher_action_list', self.teacher_action_list)
 
         elif args.env == 'cliff_world':
             self.teacher_action_list = [np.array([3,0]),np.array([0,0]), np.array([0,3]), np.array([0,6]),np.array([0,9]),np.array([0,11]),np.array([2,2]),np.array([2,5]),np.array([2,8]), np.array([2,11])] #,np.array([1,2]), np.array([1,5]), np.array([1,9]) ]
@@ -314,13 +314,13 @@ class teacher_environment():
         elif args.SR == 'L2T':
         # We collect several simple features, such as passed mini-batch number (i.e., iteration), the average historical training loss and historical validation accuracy. They are
         # proven to be effective enough to represent the status of current student mode
-            print('task index', task_index)
-            print('teacher action size', self.teacher_action_size)
+            #print('task index', task_index)
+            #print('teacher action size', self.teacher_action_size)
             one_hot_vector = utils.get_one_hot_action_vector(task_index, 1,  0, self.teacher_action_size)
 
             traj_prime = one_hot_vector + [source_task_score, target_task_score, student_episode] 
             traj_prime = np.array(traj_prime)
-            print(traj_prime)
+            #print(traj_prime)
             traj_prime = np.reshape(traj_prime, (1,self.teacher_state_size))
         elif args.SR == 'loss_mismatch':
         # We collect several simple features, such as passed mini-batch number (i.e., iteration), the average historical training loss and historical validation accuracy. They are
@@ -484,9 +484,10 @@ class teacher_environment():
         elif args.reward_function == "LP":
             reward = args.alpha*LP 
             
-        elif args.reward_function == 'simple_LP' or args.reward_function == 'simple_ALP':
+        elif args.reward_function == 'simple_LP' or args.reward_function == 'simple_ALP' or args.reward_function == 'LP_diversity' or args.reward_function == 'LP_diversity2':
             reward = -1 + args.alpha*LP 
         
+  
         elif args.reward_function == 'LP_SF_log':
               
             if SF >= args.stagnation_threshold: #this says I have converged and I have still failed on the target task, so I should probably avoid this task
@@ -504,16 +505,16 @@ class teacher_environment():
     def find_termination(self, target_task_score, current_episode, max_episode, args):
         #print(target_task_score, self.target_task_success_threshold)
         return_value = False
-        print('max_episode', max_episode, 'current episode', current_episode)
+        #print('max_episode', max_episode, 'current episode', current_episode)
         if current_episode == max_episode:
             return_value = True
         if target_task_score > self.target_task_success_threshold:
-            print('success in find terminationn')
+            #print('success in find terminationn')
             self.student_success = True
 
-        if args.reward_function == 'simple_LP' or args.reward_function == 'cost' or args.reward_function == 'L2T' or args.reward_function == 'LP':
+        if args.reward_function == 'simple_LP' or args.reward_function == 'cost' or args.reward_function == 'L2T' or args.reward_function == 'LP' or args.reward_function == 'LP_diversity2' or args.reward_function == 'LP_diversity':
             if target_task_score > self.target_task_success_threshold:
-                print('success in find terminationn')
+                #print('success in find terminationn')
                 return_value = True
 
         return return_value

@@ -3,11 +3,9 @@ import utils
 import numpy as np
 def run_evaluation_loop(args):
     
-    teacher_actions = []
     student_scores = []
     save_single_run = False 
-    
-    curr_data = []
+    area_under_curve_list = []
     
     
     if save_single_run:
@@ -29,30 +27,42 @@ def run_evaluation_loop(args):
 
         _, teacher_action_list, target_task_student_scores  = teaching_training(seed, args, file)
 
-        print('completed teacher eval')
-        teacher_actions.append(teacher_action_list)
+        area_under_single_curve = np.sum(target_task_student_scores)
+        area_under_curve_list.append(area_under_single_curve)
         student_scores.append(target_task_student_scores)
         
         print(f'teacher_action_list = {teacher_action_list}')
         print(f'student_score', target_task_student_scores)
     
     
-    collected_data = [ teacher_action_list, target_task_student_scores]
-    data_names = ['teacher_action_list', 'target_task_student_scores']
-    for idx, data in enumerate(collected_data):
-
-        dir = f'{args.rootdir}/evaluation-data'
-        utils.make_dir(args, dir)
-        index = str(seed)
-
-        file_details = [data_names[idx], index]
-        model_name = utils.get_model_name(args, dir, file_details)
-
-        utils.save_data(model_name,data)
 
 
+        collected_data = [ teacher_action_list, target_task_student_scores]
+        data_names = ['teacher_action_list', 'target_task_student_scores']
+
+        for idx, data in enumerate(collected_data):
+
+            dir = f'{args.rootdir}/evaluation-data'
+            utils.make_dir(args, dir)
+            index = str(seed)
+
+            file_details = [data_names[idx], index]
+            model_name = utils.get_model_name(args, dir, file_details)
+
+            utils.save_data(model_name,data)
 
 
+    try:
+        raw_averaged_returns = [np.mean(np.array(student_scores), axis = 0), np.std(np.array(student_scores), axis = 0)]
+        print('raw_averaged_return', raw_averaged_returns)
+    except:
+        raw_averaged_returns = 'all returns were 0'
+
+    if save_single_run == False:
+        model_name = utils.get_model_name(args, dir, ['raw_averaged_returns', ''])
+        utils.save_data(model_name,raw_averaged_returns)
+        model_name = utils.get_model_name(args, dir, ['AUC', ''])
+        utils.save_data(model_name,area_under_curve_list)   
         # if args.student_transfer:
         #     utils.make_dir(args, f'{args.rootdir}/evaluation-data/transfer_q_learning_to_sarsa')
         #     model_name = f'{args.rootdir}/evaluation-data/transfer_q_learning_to_sarsa/student_score_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{args.teacher_buffersize}_sarsa_{seed}'
@@ -66,11 +76,6 @@ def run_evaluation_loop(args):
     
         
 
-    try:
-        raw_averaged_returns = [np.mean(np.array(student_scores), axis = 0), np.std(np.array(student_scores), axis = 0)]
-        print('raw_averaged_return', raw_averaged_returns)
-    except:
-        raw_averaged_returns = 'all returns were 0'
     
 
 

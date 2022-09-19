@@ -130,14 +130,14 @@ class DQNAgent():
 
         # Epsilon-greedy action selection
         if random.random() > eps:
-            print('taking a greedy teacher action')
+            #print('taking a greedy teacher action')
             action = np.argmax(action_values.cpu().data.numpy())
             #action = self.get_teacher_action(args, action)
             return action
         else:
-            print('taking a random teacher action')
+            #print('taking a random teacher action')
             action = random.choice(np.arange(self.action_size))
-            print('self.action size', self.action_size)
+            #print('self.action size', self.action_size)
             #action = self.get_teacher_action(args, action)
             return action
     # def get_teacher_action(self,args, action):

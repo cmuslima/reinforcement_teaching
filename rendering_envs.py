@@ -22,32 +22,10 @@ class grid(gym.Env):
         self.start_state= np.array([10,4])  #target start state   
         self.termination_state= np.array([0,15]) 
         self.blocked_states= [(0,3), (2,3), (3,3), (4,3), (5,3), (6,3), (7,3), (8,3), (9,3), (10,3), (3,0), (3,1), (3,2), (7,0), (7,1), (7,2), (3,4), (3,5), (7,4), (7,6), (7,7), (3,7), (4,7), (5,7), (6,7), (8,7), (9,7), (10,7), (0,6), (1,6), (6,8), (6,9), (6,10), (0,10), (1,10), (2,10), (3,10),(8,10), (9,10),(10,10), (5,12), (5,13), (5,14), (5,15), (6,12), (7,12), (8,13), (8,14), (8,15)]
+        #this is the possible start states
         self.ss_list = [(10,4),(1,1), (5,1), (9,1),(7,5), (3,6), ([5,10]), (2,12),(10,8),(10,14), (7,13)]
         self.rows=11
         self.columns=16
-        #four rooms
-        # self.start_state= np.array([0,0])  #target start state   
-        # self.termination_state= np.array([5,4])    
-
-        # self.blocked_states= [(3,0), (0,3), (6,3), (3,6), (2,3), (4,3), (3,2), (3,3), (3,4)]
-        # self.ss_list = [(0,0),(0,1), (1,1), (3,1),(5,1), (5,3), (5,5), (3,5),(1,5),(1,3)]
-        # self.rows=7
-        # self.columns=7
-        # self.blocked_states= [(5,0),(5,1), (5,2), (6,2), (7,2), (8,2), (9,2), (10,2),(10,3),\
-        # (10,4),(10,5),(10,6),(10,7),(11,7),(12,7),(13,7),(13,6),(13,5),\
-        # (13,4),(14,4),(15,4),(16,4),(17,4),(18,4),(18,5),(18,6),(18,7),\
-        # (18,8),(18,9),(19,9),(0,6),(1,6),(2,6),(3,6),(4,6),(4,7),(4,8),\
-        # (4,9),(5,9),(6,9),(7,9),(8,9),(9,9),(9,10),(9,11),(9,12),(9,13),(9,14),\
-        # (10,14),(11,14),(12,14),(13,14),(14,14),(14,10),(14,11),(14,12),(14,13),\
-        # (15,10),(15,11),(15,12),(15,13),(15,15),(15,14),(15,15),(15,17),(15,18),\
-        # (16,18),(17,18),(18,18),(19,18)]   
-
-
-
-        
-       
-    
-
         self.tile_size = 32
 
 
@@ -116,7 +94,7 @@ class grid(gym.Env):
         #     img = self.fill_square(ss[0], ss[1], np.array(mapper.to_rgba(probability)[:3])*255, img)
         # Color goal state green
         img = self.fill_square(self.termination_state[0],self.termination_state[1],COLORS['green'],img)
-        #ßimg = self.fill_square(self.start_state[0],self.start_state[1],COLORS['blue'],img)
+        #img = self.fill_square(self.start_state[0],self.start_state[1],COLORS['blue'],img)
         for blocked in self.blocked_states:
             img = self.fill_square(blocked[0], blocked[1], COLORS['grey'], img) 
         # Draw lines in grid

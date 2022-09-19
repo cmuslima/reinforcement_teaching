@@ -15,6 +15,7 @@ class initialize_teacher_functions():
     def __init__(self, args):
       
         self.teacher_total_steps = 0
+        self.latest_teacher_action = None
      
     #you only build the teacher once at the start of the teacher training
     def build_teacher(self, args, seed, env_state_size, env_action_size, file=None, student_seed = None):
@@ -74,7 +75,7 @@ class initialize_teacher_functions():
                 task_name = target_task
 
             task_name = get_student_env_name(task_index, teacher_action_list, args)
-
+            self.latest_teacher_action = [task_index, task_name]
         
         return task_name,task_index
 
@@ -131,7 +132,7 @@ class initialize_teacher_functions():
     def get_eps(self, args, eps):
         if args.training:
             self.teacher_total_steps+=1
-            print('self.teacher_total_steps', self.teacher_total_steps)
+            #print('self.teacher_total_steps', self.teacher_total_steps)
             eps = eps
             if self.teacher_total_steps > args.teacher_batchsize:
                 eps = max(args.teacher_eps_end, args.teacher_eps_decay*eps) 
@@ -144,7 +145,29 @@ class initialize_teacher_functions():
             self.teacher_score+=1
         return self.teacher_score
     
-    def get_teacher_action(self, teacher_agent, args, env,  traj= None, eps= None):
+
+    def change_teacher_acton(self, task_name, env):
+        #print('env.action_list', env.action_list)
+        while(True):
+            randon_action = random.choice(env.action_list)
+            #print('random action', randon_action)
+            action_movement = env.action_list[randon_action[1]][0]
+            #print('action_movement', action_movement)
+            new_task = action_movement + task_name 
+            new_task = env.check_state(new_task, task_name, None)
+            #print(f'new task = {new_task}')
+            if (new_task == task_name).all():
+                #print('new task did not change from old task', new_task, task_name)
+                continue
+            else:
+                break
+
+        #print('using new task', new_task)
+        return np.array(new_task)
+                
+
+
+    def get_teacher_action(self, teacher_agent, args, env, student_env, traj= None, eps= None):
         if args.exp_type == 'curriculum':
             if args.teacher_agent == 'DQN':
                 
@@ -152,10 +175,18 @@ class initialize_teacher_functions():
                     task_index = env.target_task_index
                     task_name = env.target_task
                 else:
-                    print('selecting action from the DQN teacher')
+                    #print('selecting action from the DQN teacher')
                     task_index = teacher_agent.act(traj, args, eps)
-                    print('task index', task_index)
+                    #print('task index', task_index)
                     task_name = get_student_env_name(task_index, env.teacher_action_list, args)
+                    
+                    
+                    if (task_index == self.latest_teacher_action[0]).all() and args.reward_function == "LP_diversity2":
+                        #print('the latest action', self.latest_teacher_action)
+                        task_name = self.change_teacher_acton(self.latest_teacher_action[1], student_env)
+                        
+                    self.latest_teacher_action = [task_index, task_name]
+                    #print('updated the latest action', self.latest_teacher_action)
 
             elif args.teacher_agent == 'Random': #random teacher
                 if (args.evaluation and env.student_success): 
@@ -175,7 +206,7 @@ class initialize_teacher_functions():
                     task_index = teacher_agent.act(args)
                     task_name = get_student_env_name(task_index, env.teacher_action_list, args)
                     if (args.evaluation and env.student_success):
-                        print('using target tsk')
+                        #print('using target tsk')
                         task_index = env.target_task_index
                         task_name = env.target_task
         return task_index, task_name
