@@ -1,5 +1,6 @@
 import utils
 from rendering_envs import render_env
+import numpy as np
 def plot_actions(args):
 
     #may need to change the file name 

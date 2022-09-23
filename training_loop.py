@@ -14,6 +14,7 @@ def teaching_training(seed, args, file = None):
     all_teacher_actions = []
     teacher_return_list = []
     teacher_agent_functions = initialize_teacher_functions(args)
+    
     teacher_env = teacher_environment(args)
     teacher_env.build_teacher_env(args, seed)
     #print(f'teacher_env.teacher_action_size {teacher_env.teacher_action_size}')
@@ -39,6 +40,7 @@ def teaching_training(seed, args, file = None):
           
             print('student episode', current_student_episode)
             task_index, task_name = teacher_agent_functions.get_teacher_action(teacher_agent, args, teacher_env, teacher_env.train_evaluate_protocol.env, traj, eps) # # loop N times
+            print('task  id', task_index)
             #print(f'Got teacher action with index {task_index} and name {task_name}')
             teacher_action_list.append((task_index, task_name))
             traj_prime, reward, done, target_task_score = teacher_env.step( task_index, task_name, current_student_episode, args)

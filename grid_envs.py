@@ -42,15 +42,14 @@ class cliff_world():
         return reward, terminal
 
     def check_state(self, next_state, state, action):
-        
+        print()
         next_state_tuple= tuple(next_state)
-        
+        print('next_state_tuple', next_state_tuple)
         if next_state_tuple[0] == self.rows or next_state_tuple[1] == self.columns  or -1 in next_state_tuple:
             next_state = state
 
-        # if next_state_tuple in self.blocked_states: # bc if this happens it wouldnt be near a blocked state 
-        #     next_state = state #return back to start state
-            
+        if (next_state_tuple[0]) > self.rows or (next_state_tuple[1] > self.columns) or (next_state_tuple[0] < 0) or (next_state_tuple[1] < 0):
+            next_state = state
         return next_state  
     def step(self, state, action_index): #should return next_state, reward, done
         
@@ -89,7 +88,14 @@ class basic_grids():
         self.down=np.array([1, 0]) # 1
         self.left=np.array([0, -1]) # 2
         self.right=np.array([0, 1])  #3
+
+        self.up3=np.array([-4,0])  #0
+        self.down3=np.array([4, 0]) # 1
+        self.left3=np.array([0, -4]) # 2
+        self.right3=np.array([0, 4])  #3
+
         self.action_list=[(self.up, 0),(self.down, 1), (self.left,2), (self.right, 3)]
+        self.region_list=[(self.up3, 0),(self.down3, 1), (self.left3,2), (self.right3, 3)]
         self.state_buffer = []
         self.action_buffer = []
         self.student_discount = .99
@@ -135,13 +141,24 @@ class basic_grids():
     def check_state(self, next_state, state, action):
         
         next_state_tuple= tuple(next_state)
-        
+        #print('next state tuple', next_state_tuple)
         if next_state_tuple[0] == self.rows or next_state_tuple[1] == self.columns  or -1 in next_state_tuple:
+            #print('self.rows', self.rows, next_state_tuple[0])
+            #print('columns', self.columns, next_state_tuple[1])
+            #print('next state touple', next_state_tuple)
             next_state = state
 
-        if next_state_tuple in self.blocked_states: # bc if this happens it wouldnt be near a blocked state 
+        if next_state_tuple in self.blocked_states: # bc if this happens it wouldnt be near a blocked state
+            #print('blocked state is the issue') 
             next_state = state #return back to start state
-            
+    
+        if (next_state_tuple[0]) > self.rows or (next_state_tuple[1] > self.columns) or (next_state_tuple[0] < 0) or (next_state_tuple[1] < 0):
+            # print(next_state_tuple[0],'> ', self.rows)
+            # print(next_state_tuple[1], '>', self.columns)
+            # print(next_state_tuple[0], '< 0')
+            # print(next_state_tuple[1], '<0')
+            next_state = state
+      
         return next_state 
     def step(self, state, action_index, num_time_steps): #should return next_state, reward, done
         

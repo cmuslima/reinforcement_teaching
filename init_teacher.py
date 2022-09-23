@@ -51,7 +51,7 @@ class initialize_teacher_functions():
             teacher_agent = None
         return teacher_agent
 
-    def get_teacher_first_action(self, args, teacher_action_size,teacher_action_list, target_task_index, target_task):
+    def get_teacher_first_action(self, args, teacher_action_size,teacher_action_list, target_task_index, target_task, student_env):
         if args.exp_type == 'curriculum':
 
         # easy_initialization sets the first task to an easy one, this does require prior knowledge. Otherwise you have to randomly assign the first action. 
@@ -74,9 +74,15 @@ class initialize_teacher_functions():
                 task_index = target_task_index
                 task_name = target_task
 
+
             task_name = get_student_env_name(task_index, teacher_action_list, args)
             self.latest_teacher_action = [task_index, task_name]
-        
+            print('first teacher action', self.latest_teacher_action)
+            if args.reward_function == 'LP_diversity_region':
+                task_name = self.change_teacher_acton(self.latest_teacher_action[1], student_env, args)
+                self.latest_teacher_action = [task_index, task_name]
+
+            print('first teacher action after update', self.latest_teacher_action)
         return task_name,task_index
 
 
@@ -146,23 +152,40 @@ class initialize_teacher_functions():
         return self.teacher_score
     
 
-    def change_teacher_acton(self, task_name, env):
+    def change_teacher_acton(self, task_name, env,args):
         #print('env.action_list', env.action_list)
+        #print('starting task', task_name)
         while(True):
-            randon_action = random.choice(env.action_list)
-            #print('random action', randon_action)
-            action_movement = env.action_list[randon_action[1]][0]
-            #print('action_movement', action_movement)
+            if args.reward_function == 'LP_diversity_region':
+                random_action = random.choice(env.action_list)# up, down, left, right
+                #print('random action', random_action)
+                rand_int = random.randint(0,2)
+                #print('randint', rand_int)
+            
+                if random_action[1] == 0:
+                    action_movement = random_action[0] + np.array([-1*(rand_int), 0])
+
+                if random_action[1] == 1:
+                    action_movement = random_action[0] + np.array([1*(rand_int), 0])
+                if random_action[1] == 2:
+                    action_movement = random_action[0] + np.array([0, -1*(rand_int)])
+
+                if random_action[1] == 3:
+                    action_movement = random_action[0] + np.array([0, 1*(rand_int)])
+            else:
+                random_action = random.choice(env.action_list)# up, down, left, right
+                action_movement = random_action[0] 
+            
             new_task = action_movement + task_name 
             new_task = env.check_state(new_task, task_name, None)
-            #print(f'new task = {new_task}')
+            #print('action_movement', action_movement)
             if (new_task == task_name).all():
                 #print('new task did not change from old task', new_task, task_name)
                 continue
             else:
                 break
-
-        #print('using new task', new_task)
+        # print('old task', task_name)
+        # print('using new task', new_task)
         return np.array(new_task)
                 
 
@@ -180,13 +203,21 @@ class initialize_teacher_functions():
                     #print('task index', task_index)
                     task_name = get_student_env_name(task_index, env.teacher_action_list, args)
                     
-                    
-                    if (task_index == self.latest_teacher_action[0]).all() and args.reward_function == "LP_diversity2":
+        
+                    if args.reward_function == 'LP_diversity_region':
+                        #print('getting a new task')
+                        #print('current task name and task id', task_name, task_index)
+                        task_name = self.change_teacher_acton(task_name, student_env, args)
+                        
+            
+                    if (task_index == self.latest_teacher_action[0]).all() and args.reward_function == "LP_diversity":
                         #print('the latest action', self.latest_teacher_action)
-                        task_name = self.change_teacher_acton(self.latest_teacher_action[1], student_env)
+                        #not that diverse
+                        task_name = self.change_teacher_acton(self.latest_teacher_action[1], student_env, args)
                         
                     self.latest_teacher_action = [task_index, task_name]
-                    #print('updated the latest action', self.latest_teacher_action)
+                    
+                    print('updated the latest action', self.latest_teacher_action)
 
             elif args.teacher_agent == 'Random': #random teacher
                 if (args.evaluation and env.student_success): 

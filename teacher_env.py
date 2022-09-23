@@ -128,7 +128,7 @@ class teacher_environment():
 
         student_id = None
 
-        task_name, task_index = teacher_agent_functions.get_teacher_first_action(args, self.teacher_action_size,self.teacher_action_list, self.target_task_index, self.target_task)
+        task_name, task_index = teacher_agent_functions.get_teacher_first_action(args, self.teacher_action_size,self.teacher_action_list, self.target_task_index, self.target_task, self.train_evaluate_protocol.env)
         #print('just finished getting my first teacher action')
 
         self.first_occurence_task_check(task_index, task_name, args)
@@ -484,7 +484,7 @@ class teacher_environment():
         elif args.reward_function == "LP":
             reward = args.alpha*LP 
             
-        elif args.reward_function == 'simple_LP' or args.reward_function == 'simple_ALP' or args.reward_function == 'LP_diversity' or args.reward_function == 'LP_diversity2':
+        elif args.reward_function == 'simple_LP' or args.reward_function == 'simple_ALP' or args.reward_function == 'LP_diversity' or args.reward_function == 'LP_diversity_region':
             reward = -1 + args.alpha*LP 
         
   
@@ -512,7 +512,7 @@ class teacher_environment():
             #print('success in find terminationn')
             self.student_success = True
 
-        if args.reward_function == 'simple_LP' or args.reward_function == 'cost' or args.reward_function == 'L2T' or args.reward_function == 'LP' or args.reward_function == 'LP_diversity2' or args.reward_function == 'LP_diversity':
+        if args.reward_function == 'simple_LP' or args.reward_function == 'cost' or args.reward_function == 'L2T' or args.reward_function == 'LP' or args.reward_function == 'LP_diversity_region' or args.reward_function == 'LP_diversity':
             if target_task_score > self.target_task_success_threshold:
                 #print('success in find terminationn')
                 return_value = True
