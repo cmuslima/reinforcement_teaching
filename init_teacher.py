@@ -217,7 +217,7 @@ class initialize_teacher_functions():
                         
                     self.latest_teacher_action = [task_index, task_name]
                     
-                    print('updated the latest action', self.latest_teacher_action)
+                    #print('updated the latest action', self.latest_teacher_action)
 
             elif args.teacher_agent == 'Random': #random teacher
                 if (args.evaluation and env.student_success): 

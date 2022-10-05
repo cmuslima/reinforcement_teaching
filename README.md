@@ -20,14 +20,14 @@ How to run a experiment:
     a. python -m venv virtual_env_name
     b. source virtual_env_name/bin/activate
 3. Example training run for maze student env + RL teacher using the PE state rep and LP reward proposed in our RT paper.
- python config.py --env maze --teacher_agent DQN --reward_function simple_LP --SR buffer_policy --teacher_batchsize 128 --teacher_lr 0.001 --teacher_buffersize 100 --training 1 --evaluation 0 --num_runs_start 0 --num_runs_end 1
+ python3 config.py --env maze --teacher_agent DQN --reward_function simple_LP --SR buffer_policy --teacher_batchsize 128 --teacher_lr 0.001 --teacher_buffersize 100 --training 1 --evaluation 0 --num_runs_start 0 --num_runs_end 10
 
 The config.py file contains all the teacher/student/experiment hyperparameters.
 There is a hyper_param_sweep bool in the config file. There is a loop that loops over various teacher configurations. If this is set to True, then in the config file, you can edit what values you want to loop. For example, what teacher lrs, teacher state represetnations, etc. 
 Once you edit that, you can run python config.py --env env_name --teacher_agent DQN --num_runs_start 0 --num_runs_end 1 --training True --evaluation False
 
 4.  Example evaluation run for maze student env + RL teacher using the PE state rep and LP reward proposed in our RT paper. 
-python config.py --env maze --teacher_agent DQN --reward_function simple_LP -SR buffer_policy --teacher_batchsize 128 --teacher_lr 0.001 --teacher_buffersize 100 --training True --num_runs_start 0 --num_runs_end 1 --training False --evaluation True
+ python3 config.py --env maze --teacher_agent DQN --reward_function simple_LP --SR buffer_policy --teacher_batchsize 128 --teacher_lr 0.001 --teacher_buffersize 100 --training 0 --evaluation 1 --num_runs_start 0 --num_runs_end 10 --trained_teacher 1 --hyper_param_sweep 0
 
 
 How to get the teacher’s action for the student:
@@ -43,3 +43,5 @@ You can changed the hard coded start_state and termination_state.You can also ch
 
 How to create the heat maps:
 create_curriculum_heat_maps file
+
+

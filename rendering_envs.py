@@ -83,15 +83,15 @@ class grid(gym.Env):
         mapper = cm.ScalarMappable(norm=norm, cmap='hot')
         # Color start state blue
         img = self.fill_square(self.start_state[0],self.start_state[1],COLORS['blue'],img)
-        # for idx, ss in enumerate(self.ss_list):
+        for idx, ss in enumerate(self.ss_list):
             
 
-        #     img = self.fill_square(ss[0], ss[1], COLORS['yellow'], img)
-        #     try:
-        #         probability = probs[idx]
-        #     except:
-        #         probability = 0
-        #     img = self.fill_square(ss[0], ss[1], np.array(mapper.to_rgba(probability)[:3])*255, img)
+            img = self.fill_square(ss[0], ss[1], COLORS['yellow'], img)
+            try:
+                probability = probs[idx]
+            except:
+                probability = 0
+            img = self.fill_square(ss[0], ss[1], np.array(mapper.to_rgba(probability)[:3])*255, img)
         # Color goal state green
         img = self.fill_square(self.termination_state[0],self.termination_state[1],COLORS['green'],img)
         #img = self.fill_square(self.start_state[0],self.start_state[1],COLORS['blue'],img)
