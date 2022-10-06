@@ -24,10 +24,16 @@ class grid(gym.Env):
         self.blocked_states= [(0,3), (2,3), (3,3), (4,3), (5,3), (6,3), (7,3), (8,3), (9,3), (10,3), (3,0), (3,1), (3,2), (7,0), (7,1), (7,2), (3,4), (3,5), (7,4), (7,6), (7,7), (3,7), (4,7), (5,7), (6,7), (8,7), (9,7), (10,7), (0,6), (1,6), (6,8), (6,9), (6,10), (0,10), (1,10), (2,10), (3,10),(8,10), (9,10),(10,10), (5,12), (5,13), (5,14), (5,15), (6,12), (7,12), (8,13), (8,14), (8,15)]
         #this is the possible start states
         self.ss_list = [(10,4),(1,1), (5,1), (9,1),(7,5), (3,6), ([5,10]), (2,12),(10,8),(10,14), (7,13)]
+        
         self.rows=11
         self.columns=16
         self.tile_size = 32
-
+        self.positions = []
+        for i in range(0, self.rows):
+            for j in range(0, self.columns):
+                position = [i, j]
+                position = np.array(position)
+                self.positions.append(position)
 
 
 
@@ -83,15 +89,28 @@ class grid(gym.Env):
         mapper = cm.ScalarMappable(norm=norm, cmap='hot')
         # Color start state blue
         img = self.fill_square(self.start_state[0],self.start_state[1],COLORS['blue'],img)
-        for idx, ss in enumerate(self.ss_list):
-            
 
+        #this is for heatmap of only the 11 predefined starting positions
+        # for idx, ss in enumerate(self.ss_list):
+        
+        #     img = self.fill_square(ss[0], ss[1], COLORS['yellow'], img)
+        #     try:
+        #         probability = probs[idx]
+        #     except:
+        #         probability = 0
+        #     img = self.fill_square(ss[0], ss[1], np.array(mapper.to_rgba(probability)[:3])*255, img)
+
+
+        #this is a heat map for all the positions
+        for idx, ss in enumerate(self.positions):
+        
             img = self.fill_square(ss[0], ss[1], COLORS['yellow'], img)
             try:
                 probability = probs[idx]
             except:
                 probability = 0
             img = self.fill_square(ss[0], ss[1], np.array(mapper.to_rgba(probability)[:3])*255, img)
+
         # Color goal state green
         img = self.fill_square(self.termination_state[0],self.termination_state[1],COLORS['green'],img)
         #img = self.fill_square(self.start_state[0],self.start_state[1],COLORS['blue'],img)
