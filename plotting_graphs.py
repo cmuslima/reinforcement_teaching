@@ -44,6 +44,8 @@ def get_title(args):
     if args.comparing_scores:
         if args.env == 'maze':
             title = 'Student Performance in Maze'
+        if args.env == 'open_maze':
+            title = 'Student Performance in Open Maze'
         elif args.env == 'four_rooms':
             title = 'Student Performance in Four Rooms'
         elif args.env == 'fetch_reach_3D_outer':
@@ -79,7 +81,7 @@ def get_axis_tiles(args):
         if args.env == 'four_rooms':
             x_label = 'Number of Episodes (x25)'
             y_label = 'Student \'s Return'
-        if args.env == 'maze':
+        if args.env == 'maze' or args.env == 'open_maze':
             x_label = 'Number of Episodes (x10)'
             y_label = 'Student \'s Return'
         model_name = f'student_scores'
@@ -272,18 +274,21 @@ def plot_data(data,scores,args):
 
 
 
-        plt.plot(np.arange(length), mean, lw = 2, color = color, marker = marker, label = caption)
+        plt.plot(np.arange(40), mean[0:40], lw = 2, color = color, marker = marker, label = caption)
         CI = 1.96
         num_runs = args.num_runs
 
 
         
         variance = (CI*std)/np.sqrt(num_runs)
-
-        plt.fill_between(np.arange(length), mean+variance, mean-variance, facecolor=color, alpha=0.2)
+        variance = variance[0:40]
+        mean = mean[0:40]
+        plt.fill_between(np.arange(40), mean+variance, mean-variance, facecolor=color, alpha=0.2)
 
     if scores:
         if args.env == 'maze':
+            plt.axhline(y=0.77, color='black', linestyle='--', label = 'Performance Threshold')
+        if args.env == 'open_maze':
             plt.axhline(y=0.77, color='black', linestyle='--', label = 'Performance Threshold')
         if args.env == 'four_rooms':
             plt.axhline(y=0.6, color='black', linestyle='--', label = 'Performance Threshold')
@@ -418,7 +423,7 @@ def get_files_single_baseline(args, scores, teacher_returns, teacher_actions, le
 
 
 
-                if reward_function == 'LP_diversity2':
+                if reward_function == 'LP_diversity_region':
                     print("IM HERE")
                     reward = 'diversity'
                 if reward_function == 'simple_LP':
@@ -478,7 +483,7 @@ def get_files_single_baseline(args, scores, teacher_returns, teacher_actions, le
                         if 'buffer' in SR:
                             
                             #base_file = f'{subdir}/average_student_scores_{reward_function}_{batch}_{lr}_{S}_{buffer}'
-                            base_file = f'{subdir}/raw_averaged_returns_{SR}_{reward_function}_{lr}_{batch}_{buffer}_'
+                            base_file = f'{subdir}/{SR}_{reward_function}_{lr}_{batch}_{buffer}_raw_averaged_returns'
 
                             print('basefile', base_file)     
                                 
@@ -486,7 +491,7 @@ def get_files_single_baseline(args, scores, teacher_returns, teacher_actions, le
                         else:
                             print('SR is not buffer')
                             #base_file = f'{subdir}/average_student_scores_{reward_function}_{batch}_{lr}_{S}'    
-                            base_file = f'{subdir}/raw_averaged_returns_{SR}_{reward_function}_{lr}_{batch}_'  
+                            base_file = f'{subdir}/raw_averaged_returns_{SR}_{reward_function}_{lr}_{batch}'  
                             print(base_file)
     
 
@@ -648,14 +653,14 @@ def get_best_files(data): #this is a single baseline as of right now
 def get_best_data_all_baselines(args, scores, teacher_returns, teacher_actions):
     learning_rates = [.001, .005]
     #learning_rates = [.001]
-    buffer_sizes = [75, 100,200,300]
-    batch_sizes = [128,256] 
+    buffer_sizes = [100,75]
+    batch_sizes = [128,256,64] 
 
     state_reps = ['buffer_policy'] #, 'params', 'tile_coded_params', 'buffer_action'
     #rf = ['simple_LP']
     
     # state_reps = ['buffer_action']
-    rf = [ 'LP_diversity2', 'simple_LP'] #'target_task_score', '0_target_task_score', 'L2T', 'cost', "LP",
+    rf = ['simple_LP', 'LP_diversity_region'] #'target_task_score', '0_target_task_score', 'L2T', 'cost', "LP",
     envs = ['maze']
     # state_reps = [ 'L2T']
     # rf = ['L2T']
@@ -747,18 +752,7 @@ def plot_single_baseline(args):
         target_file_name = [(f'./RT/{args.env}/target_task_only/raw_averaged_returns_target', 'Target')]
         target_data = get_all_data(target_file_name)
         best_data_dict["Target"] =target_data.get('Target')
-    if args.student_NN_transfer:
 
-        new_dir = f'{args.rootdir}/evaluation-data/NN_large_64_64'
-        print('args.rootdir', args.rootdir, new_dir)
-        transfer_file = [(f'{new_dir}/raw_averaged_returns_buffer_q_table_simple_LP_0.001_128_100_', 'Diff. NN')]
-        
-        transfer_data = get_all_data(transfer_file)
-        best_data_dict["Diff. NN"] =transfer_data.get('Diff. NN')
-    print(best_data_dict)
-    #If I want to get the files for each baseline, run get_files in config.py changing the state_rep and just add files into a big ass list
-    #files = get_best_files(args, scores, teacher_returns, teacher_actions, buffer, rf)
-    print(f'Got the files yyy')
    
     
     # hyper_param_dict = get_area_under_curve_all_data(all_data)

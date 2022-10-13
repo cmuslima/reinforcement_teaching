@@ -5,6 +5,7 @@ from student_env_setup import build_env
 
 class train_evaluate_protocol():
     def __init__(self, args):
+        self.env = None
         if args.env == 'fetch_push':
             self.run, self.build_env = utils.import_modules(args)
         if args.env == 'fetch_reach_3D_outer':
@@ -12,7 +13,7 @@ class train_evaluate_protocol():
         if args.env == 'four_rooms' and args.tabular == False:
             print('loading four rooms modules')
             self.student_train, self.evaluate_task = utils.import_modules(args)
-        if args.env == 'maze' or args.env == 'cliff_world':
+        if args.env == 'maze' or args.env == 'cliff_world' or args.env == 'open_maze':
             self.env = build_env(args)
             
 
@@ -64,7 +65,7 @@ class train_evaluate_protocol():
                 average_score = self.run.evaluation(model, task_name, env_dict, config_params, dims, args)
                 params = None        
         if args.student_type == 'PPO':
-            print('using a PPO student')
+            #print('using a PPO student')
             average_score, params = self.evaluate_task(args, task_name)
         
     

@@ -3,7 +3,7 @@
 import utils
 import numpy as np
 def run_train_loop(args):
-    save_single_run = False
+    save_single_run = args.compute_canada
     if save_single_run:
         end = args.num_runs_start+1
     else:

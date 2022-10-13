@@ -20,7 +20,7 @@ def get_rootdir(args, SR):
         rootdir = f'./RT/{args.exp_type}/{args.setting}/{args.env}/{args.saving_method}/single_student/{args.student_type}/{SR}'
         
         if args.student_type == 'DDPG' or args.student_type == 'PPO':
-            rootdir = f'./RT/{args.exp_type}/{args.setting}/{args.env}/{args.saving_method}/single_student/{args.student_type}/{SR}/hidden_size_i_{args.hidden_size_input}_hidden_size_o_{args.hidden_size_output}_teacher_network_h_{args.teacher_network_hidden_size}'    
+            rootdir = f'./RT/{args.exp_type}/{args.setting}/{args.env}/{args.saving_method}/single_student/{args.student_type}/{SR}/hidden_size_i_{args.PE_hidden_size_input}_hidden_size_o_{args.PE_hidden_size_output}_teacher_network_h_{args.teacher_network_hidden_size}'    
 
             # if args.env == 'fetch_push':
             #     if args.HER:
@@ -113,9 +113,10 @@ def set_student_seeds():
     return 
 def set_global_seeds(seed, args, student_seed=None):
 
-    import tensorflow as tf
+    if args.env == 'fetch_reach_3D_outer':
+        import tensorflow as tf
+        tf.set_random_seed(seed)
     import torch
-    tf.set_random_seed(seed)
     torch.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)

@@ -11,7 +11,7 @@ from init_student import initalize_single_student
 def get_student_env_name(task_index, teacher_action_list, args):
     #print(teacher_action_list, task_index)
     if args.exp_type == 'curriculum':
-        if args.env == 'maze' or args.env == 'cliff_world':
+        if args.env == 'maze' or args.env == 'cliff_world' or args.env == 'open_maze':
             task_name = teacher_action_list[task_index]
         elif args.env == 'four_rooms':
             task_name = f'MiniGrid-Simple-4rooms-{task_index}-v0'
@@ -199,7 +199,7 @@ class teacher_environment():
     def set_teacher_action_list(self, args):
     #we make the assumption that the first task in the teacher's action list is the target task
         self.teacher_action_list = []
-        if args.env == 'maze':
+        if args.env == 'maze' or args.env == 'open_maze':
             self.teacher_action_list = [np.array([10,4]),np.array([1,1]), np.array([5,1]), np.array([9,1]),np.array([7,5]), np.array([3,6]), np.array([5,10]), np.array([2,12]), np.array([10,8]),  np.array([10,14]),  np.array([7,13])]
             #print('teacher_action_list', self.teacher_action_list)
 
@@ -413,6 +413,8 @@ class teacher_environment():
         if args.env == 'four_rooms':
             self.target_task_success_threshold = .6
         if args.env == 'maze':
+            self.target_task_success_threshold = (.99)**35
+        if args.env == 'open_maze':
             self.target_task_success_threshold = (.99)**35
         if args.env == 'cliff_world':
             self.target_task_success_threshold = (-1)*20

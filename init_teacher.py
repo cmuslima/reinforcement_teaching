@@ -56,7 +56,7 @@ class initialize_teacher_functions():
 
         # easy_initialization sets the first task to an easy one, this does require prior knowledge. Otherwise you have to randomly assign the first action. 
             if args.teacher_agent == 'DQN':
-                if args.env == 'maze':
+                if args.env == 'maze' or args.env == 'open_maze':
                     task_index = 7
                 elif args.env == 'cliff_world':
                     task_index = teacher_action_size-1
@@ -79,7 +79,7 @@ class initialize_teacher_functions():
             self.latest_teacher_action = [task_index, task_name]
             print('first teacher action', self.latest_teacher_action)
             if args.reward_function == 'LP_diversity_region':
-                task_name = self.change_teacher_acton(self.latest_teacher_action[1], student_env, args)
+                task_name = self.change_teacher_action(self.latest_teacher_action[1], student_env, args)
                 self.latest_teacher_action = [task_index, task_name]
 
             print('first teacher action after update', self.latest_teacher_action)
@@ -152,41 +152,68 @@ class initialize_teacher_functions():
         return self.teacher_score
     
 
-    def change_teacher_acton(self, task_name, env,args):
+    def change_teacher_action(self, task_name, env,args):
         #print('env.action_list', env.action_list)
         #print('starting task', task_name)
+        print('inside change teacher action')
         while(True):
+            try_again = False
             if args.reward_function == 'LP_diversity_region':
                 random_action = random.choice(env.action_list)# up, down, left, right
-                #print('random action', random_action)
-                rand_int = random.randint(0,2)
-                #print('randint', rand_int)
-            
-                if random_action[1] == 0:
-                    action_movement = random_action[0] + np.array([-1*(rand_int), 0])
+                print('random action', random_action)
+                rand_int = random.randint(0,3)
+                print('randint', rand_int)
+                if rand_int == 0:
+                    print('task chosen', task_name, 'old task', task_name)
+                    print('done with change teacher function')
+                    return np.array(task_name)
+                for i in range(1, rand_int+1):
+                    print('check index', i)
+                    if random_action[1] == 0:
+                        action_movement =  np.array([-1*(i), 0]) #random_action[0] +
 
-                if random_action[1] == 1:
-                    action_movement = random_action[0] + np.array([1*(rand_int), 0])
-                if random_action[1] == 2:
-                    action_movement = random_action[0] + np.array([0, -1*(rand_int)])
+                    if random_action[1] == 1:
+                        action_movement = np.array([1*(i), 0]) #random_action[0] + 
+                    if random_action[1] == 2:
+                        action_movement = np.array([0, -1*(i)]) # random_action[0] +
 
-                if random_action[1] == 3:
-                    action_movement = random_action[0] + np.array([0, 1*(rand_int)])
-            else:
-                random_action = random.choice(env.action_list)# up, down, left, right
-                action_movement = random_action[0] 
+                    if random_action[1] == 3:
+                        action_movement = np.array([0, 1*(i)]) #random_action[0] +
+                        # print(np.array([0, 1*(i)]))
+                        # print(action_movement)
+
+                    new_task = action_movement + task_name 
+                    print('new task', new_task)
+                    new_task = env.check_state(new_task, task_name, None)
+                    #print('action_movement', action_movement)
+                    if (new_task == task_name).all():
+                        print('new task is invalid', new_task, task_name)
+                        try_again = True
+                        break
+                    else:
+                        print('the task passed', new_task)
+                        continue
+            if try_again == False:
+                print('done with change teacher function')
+                print('task chosen', new_task, 'old task',task_name )
+                return np.array(new_task)
+
             
-            new_task = action_movement + task_name 
-            new_task = env.check_state(new_task, task_name, None)
+            # else:
+            #     random_action = random.choice(env.action_list)# up, down, left, right
+            #     action_movement = random_action[0] 
+            
+            # new_task = action_movement + task_name 
+            # new_task = env.check_state(new_task, task_name, None)
             #print('action_movement', action_movement)
-            if (new_task == task_name).all():
-                #print('new task did not change from old task', new_task, task_name)
-                continue
-            else:
-                break
+            # if (new_task == task_name).all():
+            #     #print('new task did not change from old task', new_task, task_name)
+            #     continue
+            # else:
+            #     break
         # print('old task', task_name)
         # print('using new task', new_task)
-        return np.array(new_task)
+        #return np.array(new_task)
                 
 
 
@@ -207,13 +234,13 @@ class initialize_teacher_functions():
                     if args.reward_function == 'LP_diversity_region':
                         #print('getting a new task')
                         #print('current task name and task id', task_name, task_index)
-                        task_name = self.change_teacher_acton(task_name, student_env, args)
+                        task_name = self.change_teacher_action(task_name, student_env, args)
                         
             
                     if (task_index == self.latest_teacher_action[0]).all() and args.reward_function == "LP_diversity":
                         #print('the latest action', self.latest_teacher_action)
                         #not that diverse
-                        task_name = self.change_teacher_acton(self.latest_teacher_action[1], student_env, args)
+                        task_name = self.change_teacher_action(self.latest_teacher_action[1], student_env, args)
                         
                     self.latest_teacher_action = [task_index, task_name]
                     

@@ -71,13 +71,18 @@ class basic_grids():
             self.start_state= np.array([10,4])  #target start state   
             self.termination_state= np.array([0,15])    
             self.blocked_states= [(0,3), (2,3), (3,3), (4,3), (5,3), (6,3), (7,3), (8,3), (9,3), (10,3), (3,0), (3,1), (3,2), (7,0), (7,1), (7,2), (3,4), (3,5), (7,4), (7,6), (7,7), (3,7), (4,7), (5,7), (6,7), (8,7), (9,7), (10,7), (0,6), (1,6), (6,8), (6,9), (6,10), (0,10), (1,10), (2,10), (3,10),(8,10), (9,10),(10,10), (5,12), (5,13), (5,14), (5,15), (6,12), (7,12), (8,13), (8,14), (8,15)]
-            self.actions = list()
-            for i in range(0, rows):
-                for j in range(0, columns):
-                    action = [i, j]
-                    if action not in self.blocked_states:
-                        action = np.array(action)
-                        self.actions.append(action)
+        
+        if env_type == 'open_maze':
+            self.start_state= np.array([10,4])  #target start state   
+            self.termination_state= np.array([0,15])    
+            self.blocked_states= [(0,3), (2,3), (3,3), (5,3), (6,3), (7,3), (9,3), (10,3), (3,0), (3,1), (3,2), (7,0), (7,1), (7,2), (3,4), (3,5), (7,4), (7,6), (7,7), (3,7), (4,7), (5,7), (6,7), (9,7), (10,7), (0,6), (1,6), (6,8), (6,9), (6,10), (0,10), (1,10), (2,10), (3,10),(8,10), (9,10),(10,10), (5,12), (5,13), (5,14), (5,15), (6,12), (8,13), (8,14), (8,15)]
+        self.actions = list()
+        for i in range(0, rows):
+            for j in range(0, columns):
+                action = [i, j]
+                if action not in self.blocked_states:
+                    action = np.array(action)
+                    self.actions.append(action)
 
 
         
@@ -146,10 +151,13 @@ class basic_grids():
             #print('self.rows', self.rows, next_state_tuple[0])
             #print('columns', self.columns, next_state_tuple[1])
             #print('next state touple', next_state_tuple)
+            #print('next state is invalid b/c the next state is either the rows, columns are out of bounds')
+            #print('next state tuple', next_state_tuple)
             next_state = state
 
         if next_state_tuple in self.blocked_states: # bc if this happens it wouldnt be near a blocked state
             #print('blocked state is the issue') 
+            #print('next state tuple', next_state_tuple)
             next_state = state #return back to start state
     
         if (next_state_tuple[0]) > self.rows or (next_state_tuple[1] > self.columns) or (next_state_tuple[0] < 0) or (next_state_tuple[1] < 0):
@@ -157,6 +165,9 @@ class basic_grids():
             # print(next_state_tuple[1], '>', self.columns)
             # print(next_state_tuple[0], '< 0')
             # print(next_state_tuple[1], '<0')
+            #print('next state tuple', next_state_tuple)
+            #print('next state is invalid b/c the next state is either the rows, columns are out of bounds')
+
             next_state = state
       
         return next_state 

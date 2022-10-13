@@ -4,7 +4,7 @@ import numpy as np
 def run_evaluation_loop(args):
     
     student_scores = []
-    save_single_run = False 
+    save_single_run = args.compute_canada 
     area_under_curve_list = []
     
     
