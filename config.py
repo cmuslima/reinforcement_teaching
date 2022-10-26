@@ -1,10 +1,14 @@
 
+
 import sys
 import argparse
+from venv import create
 import utils
 from run_training_loop import run_train_loop
 from run_eval_loop import run_evaluation_loop
 import plotting_graphs
+import average
+import numpy
 import create_curriculum_heat_maps
 
 if __name__ == '__main__':
@@ -15,7 +19,7 @@ if __name__ == '__main__':
     parser.add_argument('--rootdir', type=str) 
     parser.add_argument('--exp_type', type=str, default = 'curriculum') #this should always remain the same
     parser.add_argument('--setting', type=str, default = 'RL') #this should always remain the same
-    parser.add_argument('--env', type=str, default= 'maze') #**this changes depending on the student task of interest
+    parser.add_argument('--env', type=str, default= 'open_maze') #**this changes depending on the student task of interest
     parser.add_argument('--max_time_step', type=int) 
     parser.add_argument('--SR', type=str)
     parser.add_argument('--reward_function', type=str)
@@ -36,10 +40,14 @@ if __name__ == '__main__':
     parser.add_argument('--teacher_eps_decay', type=float, default= .99)
     parser.add_argument('--teacher_eps_end', type=float, default= .01)
 
+    parser.add_argument('--diversity_lambda', type=float)
     parser.add_argument('--teacher_buffersize', type=int)
     parser.add_argument('--teacher_batchsize', type=int)
     parser.add_argument('--teacher_lr', type=float, default= .001)
     parser.add_argument('--teacher_episodes', type=int) 
+    parser.add_argument('--expert_teacher_model_file_name', type=str, default = None)
+
+
 
     #teacher network args
 
@@ -79,6 +87,7 @@ if __name__ == '__main__':
     parser.add_argument('--target_task_only', type=int, default = 0)#bool value
     parser.add_argument('--trained_teacher', type=int, default = 0)#bool value
     parser.add_argument('--handcrafted', type=int, default = 0)#bool value
+    parser.add_argument('--upload_teacher_weights', type=int, default = 0)#bool value
 
 
     parser.add_argument('--debug', type=int, default= 0)#bool value
@@ -89,7 +98,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_student_processes', type=int, default= 1) #this is only used for fetch reach +open ai baselines
     parser.add_argument('--MP', type=int, default = 0)#bool value
 
-
+    parser.add_argument('--compute_canada', type=int, default = 0) #bool value
     parser.add_argument('--training', type=int, default = 0) #bool value
     parser.add_argument('--evaluation', type=int, default = 0)#bool value
     parser.add_argument('--plotting', type=int, default = 0)#bool value
@@ -173,14 +182,13 @@ if __name__ == '__main__':
     parser.add_argument('--comp_baselines', type=int, default=0)#bool value
     parser.add_argument('--comparing_scores', type=int, default=1)#bool value
     parser.add_argument('--plot_best_data', type=int, default=1)#bool value
-    parser.add_argument('--stagnation', type=int, default=1)#bool value
     parser.add_argument('--AUC', type=int, default = 1)#bool value #AUC is area under curve, used for plotting
 
 
 
     args = parser.parse_args()
 
-    if args.env == 'maze': #once I update the env code such that I only have one code for all environments, this will be more useful
+    if args.env == 'maze' or args.env == 'open_maze': #once I update the env code such that I only have one code for all environments, this will be more useful
         args.rows = 11
         args.columns = 16
         args.student_num_actions = 4
@@ -195,7 +203,7 @@ if __name__ == '__main__':
         args.teacher_network_hidden_size = 64
         args.tabular = True
         args.teacher_episodes = 300
-        args.student_episodes = 100 #*150
+        args.student_episodes = 100
         args.three_layer_network = False
         args.stagnation = True #not used
         args.student_type = 'q_learning'
@@ -271,14 +279,16 @@ if __name__ == '__main__':
         args.three_layer_network = False
         args.num_env = 2
 
+
     
 
     if args.hyper_param_sweep:
-        learning_rates = [.005, .001]
-        buffer_sizes = [100]
-        batch_sizes = [256,128] 
-        teacher_state_rep = 'buffer_policy' #choices are buffer_policy (our method), buffer_q_table (our method), L2T, params
-        teacher_rf_list = ['LP_diversity_region'] # simple_LP (our method), LP, target_task_score, 0_target_task_score, cost, L2T'
+        learning_rates = [ .001]
+        buffer_sizes = [75]
+        batch_sizes = [256] 
+        diversity_lambdas = [.2, .4, .6, .8]
+        teacher_state_rep = args.SR #choices are buffer_policy (our method), buffer_q_table (our method), L2T, params
+        teacher_rf_list = [args.reward_function] # simple_LP (our method), LP, target_task_score, 0_target_task_score, cost, L2T'
         area_under_curve = dict()
         #L2T state + L2T reward = Fan et al (2018) method
         #params state + cost reward = Narvekear (2017) method
@@ -291,23 +301,24 @@ if __name__ == '__main__':
             for buffer in buffer_sizes:
                 for batch_size in batch_sizes:
                     for lr in learning_rates:
-                        
-                        args.SR = teacher_state_rep
-                        args.reward_function = rf
-                        args.teacher_batchsize = batch_size
-                        args.teacher_lr = lr
-                        args.teacher_buffersize = buffer
-                        
-                        #this is really only used for the PPO student
-                        args.model_folder_path = f'{args.SR}_{args.teacher_batchsize}_{args.teacher_lr}_{args.reward_function}_{args.teacher_buffersize}_{args.num_runs_start}_target'
+                        for lambdas in diversity_lambdas:
+                            args.diversity_lambda = lambdas
+                            #args.SR = teacher_state_rep
+                            args.reward_function = rf
+                            #args.teacher_batchsize = batch_size
+                            #args.teacher_lr = lr
+                            #args.teacher_buffersize = buffer
+                            
+                            #this is really only used for the PPO student
+                            args.model_folder_path = f'{args.SR}_{args.teacher_batchsize}_{args.teacher_lr}_{args.reward_function}_{args.teacher_buffersize}_{args.num_runs_start}_target'
 
-                        args.rootdir = utils.get_rootdir(args, args.SR)
-                        utils.make_dir(args, args.rootdir)
-                        print(f'Root dir = {args.rootdir}')
-                        if args.training:
-                            run_train_loop(args)
-                        if args.evaluation:
-                            run_evaluation_loop(args)
+                            args.rootdir = utils.get_rootdir(args, args.SR)
+                            utils.make_dir(args, args.rootdir)
+                            print(f'Root dir = {args.rootdir}')
+                            if args.training:
+                                run_train_loop(args)
+                            if args.evaluation:
+                                run_evaluation_loop(args)
 
 
     else:
@@ -315,27 +326,28 @@ if __name__ == '__main__':
         utils.make_dir(args, args.rootdir)
 
         if args.training:
+    
             run_train_loop(args)
         if args.evaluation:
             args.teacher_episodes = 1
             args.teacher_eps_start = 0
             run_evaluation_loop(args)
 
+        if args.average:
+            print('average')
+            average.average_all(args)
         if args.plotting:
 
-            args.SR = 'buffer_q_table'
-            args.reward_function = 'LP_diversity2'
-            args.teacher_batchsize = 128
-            args.teacher_lr = 0.005
-            args.teacher_buffersize = 100   
-            args.rootdir = utils.get_rootdir(args, args.SR)         
-            create_curriculum_heat_maps.plot_actions(args)
-            #plotting_graphs.plot_single_baseline(args)
+            # args.SR = 'buffer_policy'
+            # args.reward_function = 'LP_diversity_region'
+            # args.teacher_batchsize = 128
+            # args.teacher_lr = 0.001
+            # args.teacher_buffersize = 100   
+            # args.rootdir = utils.get_rootdir(args, args.SR)         
+            #create_curriculum_heat_maps.plot_actions_regions(args)
+            #create_curriculum_heat_maps.plot_actions(args)
+            plotting_graphs.plot_single_baseline(args)
 
         
-    
  
-
-
-
 

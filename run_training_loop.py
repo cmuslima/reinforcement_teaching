@@ -19,8 +19,11 @@ def run_train_loop(args):
 
         
         teaching_training = utils.import_training_modules(args)
+        print(f'{args.expert_teacher_model_file_name}_{seed}.pth')
 
-        teacher_return_list, teacher_actions, target_task_student_scores  = teaching_training(seed, args)
+        
+        teacher_return_list, teacher_actions, target_task_student_scores  = teaching_training(seed, args, f'{args.expert_teacher_model_file_name}_{seed}.pth')
+
 
         print(f'Teacher returns on run {seed}, {teacher_return_list}')
     
@@ -39,3 +42,5 @@ def run_train_loop(args):
         
     print(f'run {seed} complete')
         
+
+

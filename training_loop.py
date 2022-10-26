@@ -26,7 +26,7 @@ def teaching_training(seed, args, file = None):
     #one reset here which initalizes the env, teacher state space, etc
     for teacher_episode in range(0, args.teacher_episodes):
       
-        print('teacher episode', teacher_episode)      
+        print('teacher episode', teacher_episode)     
         teacher_return = 0
         student_scores = list() #this keeps a list of student scores per each teacher episode.      
         teacher_action_list = list()
@@ -40,7 +40,7 @@ def teaching_training(seed, args, file = None):
           
             print('student episode', current_student_episode)
             task_index, task_name = teacher_agent_functions.get_teacher_action(teacher_agent, args, teacher_env, teacher_env.train_evaluate_protocol.env, traj, eps) # # loop N times
-            print('task  id', task_index)
+            #print('task  id', task_index)
             #print(f'Got teacher action with index {task_index} and name {task_name}')
             teacher_action_list.append((task_index, task_name))
             traj_prime, reward, done, target_task_score = teacher_env.step( task_index, task_name, current_student_episode, args)

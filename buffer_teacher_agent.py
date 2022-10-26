@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import utils
 import pickle
+import math
 #import json
 
 from replay_buffer import ReplayBuffer
@@ -62,7 +63,45 @@ class DQNAgent():
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, self.batchsize, seed)
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
+        self.diversity_lambda = args.diversity_lambda
+        
+        
 
+    def store_expert_teacher_weights(self, args):
+        if args.upload_teacher_weights:
+            self.expert_weights = torch.tensor(self.get_weights())
+            print(self.expert_weights)
+    def get_weights(self):
+        params = []
+        for param in self.qnetwork_local.parameters():
+            #print('param')
+            #print(param)
+            #print('new param view')
+            #print(param.view(-1))
+
+            params.append(param.view(-1))
+        params = torch.cat(params)
+        #print(params)
+        return params
+    def updated_loss_function(self, output, target):
+        MSE_loss = torch.mean((output - target)**2)
+        print("MSE_loss", MSE_loss)
+        loss = MSE_loss - self.diversity_loss()
+        print('total loss', loss)
+        return loss
+
+    def diversity_loss(self):
+        print('inside diversity loss function')
+        current_model_weights = torch.tensor(self.get_weights())
+        print('current model weights', current_model_weights)
+        print('expert weights', self.expert_weights)
+        diff_weights = current_model_weights - self.expert_weights
+        print('difference in weights', diff_weights)
+        L2_norm = torch.linalg.norm(diff_weights)
+        print('L2 norm of diff weights', L2_norm)
+        div_loss = self.diversity_lambda*math.exp(L2_norm)
+        print('div loss', div_loss)
+        return div_loss
     def update_student_type(self):
         do_nothing = True
 
@@ -182,27 +221,25 @@ class DQNAgent():
         # get targets
         self.qnetwork_target.eval()
         with torch.no_grad():
-            #print('np.shape(next_states)', np.shape(next_states))
             Q_targets_next = torch.max(self.qnetwork_target.forward(next_states), dim=1, keepdim=True)[0]
-            #print('done with next states')
-            #print('Q_targets_next', Q_targets_next)
+
 
         
         Q_targets = rewards + (GAMMA * Q_targets_next * (1 - dones))
-        #print('Q_targets', Q_targets)
-        #print('shape of q targets')
-       # print(np.shape(Q_targets))
-       # print('Qtargets', Q_targets)
+
 
         # get outputs
         self.qnetwork_local.train()
         #print('np.shape(states)', np.shape(states)) #need to concatencate the state with the goal 
         Q_expected = self.qnetwork_local.forward(states).gather(1, actions)
-        #print('done with states')
-        #print('Q_expected', Q_expected)
-        #print('shape of q expected', np.shape(Q_expected),Q_expected)
+
         # compute loss
-        loss = F.mse_loss(Q_expected, Q_targets)
+        #loss = F.mse_loss(Q_expected, Q_targets)
+        if args.upload_teacher_weights:
+            loss = self.updated_loss_function(Q_expected, Q_targets)
+
+        else:
+            loss = F.mse_loss(Q_expected, Q_targets)
         #print('loss', loss)
         # clear gradients
         self.optimizer.zero_grad()

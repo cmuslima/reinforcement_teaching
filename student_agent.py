@@ -5,7 +5,7 @@ import random
 class tabular_agent():    
     def __init__(self, rows, columns, action_size, LR, discount, eps):
         self.discount= discount#1
-        print('epi', eps)
+        #print('epi', eps)
         self.LR= LR #0.5
         self.eps= eps
         self.rows = rows

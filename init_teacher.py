@@ -19,19 +19,24 @@ class initialize_teacher_functions():
      
     #you only build the teacher once at the start of the teacher training
     def build_teacher(self, args, seed, env_state_size, env_action_size, file=None, student_seed = None):
-    
         #Here I am instantiating the teacher's learning algorithm 
         if args.teacher_agent == 'DQN':
-        
+           
             if 'buffer' in args.SR:
-          
                 from buffer_teacher_agent import DQNAgent      
                 print('env_state_size', env_state_size, 'env_action_size', env_action_size)
                 teacher_agent = DQNAgent(state_size=env_state_size, action_size = env_action_size, seed=seed, args= args) 
-                
+                print('upload_teacher_weights 3', args.upload_teacher_weights)
                 if args.trained_teacher:
                     print("Uploading trained teacher model")
                     teacher_agent.qnetwork_local.load_state_dict(torch.load(file))
+
+                if args.upload_teacher_weights:
+                    print('file', file)
+                    print('uploading file for diversity loss')
+                    teacher_agent.qnetwork_local.load_state_dict(torch.load(file))
+                    teacher_agent.store_expert_teacher_weights(args)
+
             else:
            
                 from teacher_agent import DQNAgent
@@ -109,12 +114,13 @@ class initialize_teacher_functions():
 
                 if args.teacher_agent == 'DQN':
                     dir = f'{args.rootdir}/teacher-data' 
+                    model_name = f'{dir}/teacher_agent_checkpoint_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{seed}.pth'
 
-                    if args.SR == 'buffer_policy' or args.SR == 'buffer_q_table' or args.SR == 'buffer_action' or args.SR == 'buffer_max_policy' or args.SR == 'buffer_max_q_table' or args.SR == 'buffer_max_action':
+                    if 'buffer' in args.SR:
                         model_name = f'{dir}/teacher_agent_checkpoint_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{args.teacher_buffersize}_{seed}.pth'
-                    else:
-                        model_name = f'{dir}/teacher_agent_checkpoint_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{seed}.pth'
                     
+                        if args.upload_teacher_weights:
+                            model_name = f'{dir}/teacher_agent_checkpoint_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{args.teacher_buffersize}_{args.diversity_lambda}_{seed}.pth'
                     print(f'Saving {model_name}')
                     torch.save(teacher_agent.qnetwork_local.state_dict(), model_name)
                     
@@ -123,11 +129,12 @@ class initialize_teacher_functions():
                 N = 5
                 dir = f'{args.rootdir}/teacher-data' 
                 if len(return_list) > N and teacher_return > sum(return_list[(-1*N):])/N:
-                    if args.SR == 'buffer_policy' or args.SR == 'buffer_q_table' or args.SR == 'buffer_action' or args.SR == 'buffer_max_policy' or args.SR == 'buffer_max_q_table' or args.SR == 'buffer_max_action':
+                    model_name = f'{dir}/teacher_agent_checkpoint_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{seed}.pth'
+
+                    if 'buffer' in args.SR:
                         model_name = f'{dir}/teacher_agent_checkpoint_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{args.teacher_buffersize}_{seed}.pth'
-                    else:
-                        model_name = f'{dir}/teacher_agent_checkpoint_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{seed}.pth'
-                    
+                        if args.upload_teacher_weights:
+                            model_name = f'{dir}/teacher_agent_checkpoint_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{args.teacher_buffersize}_{args.diversity_lambda}_{seed}.pth'                    
                     print(f'Saving {model_name}')
                     torch.save(teacher_agent.qnetwork_local.state_dict(), model_name)
                 
@@ -142,8 +149,10 @@ class initialize_teacher_functions():
             eps = eps
             if self.teacher_total_steps > args.teacher_batchsize:
                 eps = max(args.teacher_eps_end, args.teacher_eps_decay*eps) 
+                
         else:
             eps = 0
+        print('using teacher eps', eps)
         return eps
     
     def update_teacher_score(self, args):
@@ -155,20 +164,20 @@ class initialize_teacher_functions():
     def change_teacher_action(self, task_name, env,args):
         #print('env.action_list', env.action_list)
         #print('starting task', task_name)
-        print('inside change teacher action')
+        #print('inside change teacher action')
         while(True):
             try_again = False
             if args.reward_function == 'LP_diversity_region':
                 random_action = random.choice(env.action_list)# up, down, left, right
-                print('random action', random_action)
+                #print('random action', random_action)
                 rand_int = random.randint(0,3)
-                print('randint', rand_int)
+                #print('randint', rand_int)
                 if rand_int == 0:
-                    print('task chosen', task_name, 'old task', task_name)
-                    print('done with change teacher function')
+                    #print('task chosen', task_name, 'old task', task_name)
+                    #print('done with change teacher function')
                     return np.array(task_name)
                 for i in range(1, rand_int+1):
-                    print('check index', i)
+                    #print('check index', i)
                     if random_action[1] == 0:
                         action_movement =  np.array([-1*(i), 0]) #random_action[0] +
 
@@ -183,19 +192,19 @@ class initialize_teacher_functions():
                         # print(action_movement)
 
                     new_task = action_movement + task_name 
-                    print('new task', new_task)
+                    #print('new task', new_task)
                     new_task = env.check_state(new_task, task_name, None)
                     #print('action_movement', action_movement)
                     if (new_task == task_name).all():
-                        print('new task is invalid', new_task, task_name)
+                        #print('new task is invalid', new_task, task_name)
                         try_again = True
                         break
                     else:
-                        print('the task passed', new_task)
+                        #print('the task passed', new_task)
                         continue
             if try_again == False:
-                print('done with change teacher function')
-                print('task chosen', new_task, 'old task',task_name )
+                #print('done with change teacher function')
+                #print('task chosen', new_task, 'old task',task_name )
                 return np.array(new_task)
 
             

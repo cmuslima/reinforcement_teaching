@@ -197,16 +197,21 @@ def get_model_name(args, dir, file_details):
     seed = file_details[1]
     if args.teacher_agent == 'DQN':
         if 'buffer' not in args.SR:
+            model_name = f'{dir}/{start_of_file}_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{seed}'
+
             if args.student_lr_transfer:
                 model_name = f'{dir}/{start_of_file}_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{args.student_lr}_student_lr_transfer_{seed}'
-            else:
-                model_name = f'{dir}/{start_of_file}_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{seed}'
+
+            if args.upload_teacher_weights:
+                model_name = f'{dir}/{start_of_file}_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{args.teacher_buffersize}_{args.diversity_lambda}_{seed}'
 
         else:
             if args.student_lr_transfer:
                 model_name = f'{dir}/{start_of_file}_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{args.teacher_buffersize}_{args.student_lr}_student_lr_transfer_{seed}'
             else:
                 model_name = f'{dir}/{start_of_file}_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{args.teacher_buffersize}_{seed}'
+                if args.upload_teacher_weights:
+                    model_name = f'{dir}/{start_of_file}_{args.SR}_{args.reward_function}_{args.teacher_lr}_{args.teacher_batchsize}_{args.teacher_buffersize}_{args.diversity_lambda}_{seed}'
     elif args.teacher_agent == 'Random' or args.teacher_agent == 'No_Teacher':
         model_name = f'{dir}/{start_of_file}_{seed}'
     return model_name
